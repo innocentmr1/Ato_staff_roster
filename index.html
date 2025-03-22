@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Staff Roster</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+        td {
+            font-size: 16px;
+        }
+        .empty-row {
+            height: 20px;
+            background-color: #f4f4f4;
+        }
+        .off-day {
+            background-color: #cc0000;
+            color: white;
+        }
+        .office-day {
+            background-color: #008000;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h2>Office Staff Roster</h2>
+    
+    <button onclick="addNewStaff()">Add New Staff</button>
+    
+    <table id="rosterTableContainer">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Monday (Mandatory)</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+            </tr>
+        </thead>
+        <tbody id="rosterTable"></tbody>
+    </table>
+
+    <button onclick="generateRandomDays()">Generate Random Days</button>
+    <button onclick="downloadRosterAsPNG()">Download as PNG</button>
+    <button onclick="downloadRosterAsPDF()">Download as PDF</button>
+
+    <script>
+        if (!window.employees) {
+            window.employees = [
+                "RITA", "TOYIN", "BANKOLE", "LEONARD", "AUGUSTINE", "KEHINDE", "VICTOR", 
+                "", 
+                "ENO", "ENECHE", "ANYANWU", "DENNIS", "EVA", "INNOCENT", "HUMPHREY", "TIMOTHY", "ESTHER", 
+                "", 
+                "BLESSING", "SALAMAT", "JOEL", "", "FRANCES", "OKECHUKWU", "ROSE", "DANJUMA"
+            ];
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function generateRandomDays() {
+            let table = document.getElementById("rosterTable");
+            table.innerHTML = "";
+            
+            employees.forEach(name => {
+                if (name === "") {
+                    let emptyRow = table.insertRow();
+                    emptyRow.classList.add("empty-row");
+                    return;
+                }
+                
+                let row = table.insertRow();
+                let cellName = row.insertCell(0);
+                cellName.innerText = name;
+                
+                let days = ["Tuesday", "Wednesday", "Thursday", "Friday"];
+                shuffleArray(days);
+                let selectedDays = ["Monday"].concat(days.slice(0, 3));
+
+                if (name === "ENO" || name === "ANYANWU") {
+                    selectedDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+                }
+                
+                if (name === "EVA") {
+                    selectedDays = ["Monday", "Tuesday", "Thursday", "Friday"];
+                }
+                
+                ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].forEach((day, index) => {
+                    let cell = row.insertCell(index + 1);
+                    if (selectedDays.includes(day)) {
+                        cell.innerText = "WORKING";
+                        cell.classList.add("office-day");
+                    } else {
+                        cell.innerText = "Off";
+                        cell.classList.add("off-day");
+                    }
+                });
+            });
+        }
+
+        function downloadRosterAsPNG() {
+            html2canvas(document.getElementById("rosterTableContainer")).then(canvas => {
+                let link = document.createElement("a");
+                link.href = canvas.toDataURL("image/png");
+                link.download = "staff_roster.png";
+                link.click();
+            });
+        }
+
+        function downloadRosterAsPDF() {
+            const { jsPDF } = window.jspdf;
+            let doc = new jsPDF();
+            html2canvas(document.getElementById("rosterTableContainer")).then(canvas => {
+                let imgData = canvas.toDataURL("image/png");
+                doc.addImage(imgData, "PNG", 10, 10, 190, 0);
+                doc.save("staff_roster.pdf");
+            });
+        }
+
+        function addNewStaff() {
+            let newStaff = prompt("Enter the new staff name:");
+            if (newStaff) {
+                employees.push(newStaff.toUpperCase());
+                generateRandomDays();
+            }
+        }
+        
+        generateRandomDays();
+    </script>
+</body>
+</html>
